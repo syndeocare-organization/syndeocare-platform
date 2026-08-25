@@ -1,0 +1,44 @@
+name: Platform CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@11.19.0 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm lint
+      - name: Type-check
+        run: pnpm typecheck
+      - name: Unit and contract tests
+        run: pnpm test
+      - name: Production build
+        run: pnpm build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+      - name: Install browser
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: Browser tests
+        run: pnpm test:e2e
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
