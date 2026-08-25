@@ -17,7 +17,7 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   role public.user_role not null default 'professional',
   full_name text check (full_name is null or char_length(full_name) between 2 and 100),
-  phone text check (phone is null or phone ~ '^\\+?[0-9 ()-]{7,20}$'),
+  phone text check (phone is null or phone ~ '^\+?[0-9 ()-]{7,20}$'),
   city text check (city is null or char_length(city) between 2 and 80),
   country_code text check (country_code is null or country_code ~ '^[A-Z]{2}$'),
   locale text not null default 'ar' check (locale in ('ar', 'en')),
@@ -243,6 +243,19 @@ as $$
   );
 $$;
 
+create or replace function public.is_professional()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'professional'
+  );
+$$;
+
 create or replace function public.is_organization_member(target_organization uuid)
 returns boolean
 language sql
@@ -285,10 +298,12 @@ as $$
 $$;
 
 revoke all on function public.is_admin() from public;
+revoke all on function public.is_professional() from public;
 revoke all on function public.is_organization_member(uuid) from public;
 revoke all on function public.has_organization_role(uuid, public.organization_member_role[]) from public;
 revoke all on function public.is_conversation_member(uuid) from public;
 grant execute on function public.is_admin() to authenticated;
+grant execute on function public.is_professional() to authenticated;
 grant execute on function public.is_organization_member(uuid) to authenticated;
 grant execute on function public.has_organization_role(uuid, public.organization_member_role[]) to authenticated;
 grant execute on function public.is_conversation_member(uuid) to authenticated;
@@ -561,7 +576,7 @@ create policy applications_select on public.applications for select to authentic
     select 1 from public.shifts s where s.id = applications.shift_id and public.is_organization_member(s.organization_id)
   )
 );
-create policy applications_insert on public.applications for insert to authenticated with check (professional_id = auth.uid() and status = 'applied' and exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'professional'));
+create policy applications_insert on public.applications for insert to authenticated with check (professional_id = auth.uid() and status = 'applied' and public.is_professional());
 create policy applications_withdraw on public.applications for update to authenticated using (professional_id = auth.uid() and status in ('applied','shortlisted')) with check (professional_id = auth.uid() and status = 'withdrawn');
 create policy applications_manage on public.applications for update to authenticated using (public.is_admin() or exists (select 1 from public.shifts s where s.id = applications.shift_id and public.has_organization_role(s.organization_id, array['owner','manager','recruiter']::public.organization_member_role[]))) with check (public.is_admin() or exists (select 1 from public.shifts s where s.id = applications.shift_id and public.has_organization_role(s.organization_id, array['owner','manager','recruiter']::public.organization_member_role[])));
 

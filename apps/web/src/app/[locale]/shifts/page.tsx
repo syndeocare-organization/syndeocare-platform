@@ -24,7 +24,7 @@ export default async function ShiftsPage({ params }: { params: Promise<{ locale:
   return (
     <DashboardShell locale={locale} viewer={viewer}>
       <div className="flex items-end justify-between gap-4"><div><p className="eyebrow">{viewer.role === "professional" ? (isArabic ? "فرص مناسبة" : "Matched opportunities") : (isArabic ? "إدارة التغطية" : "Coverage management")}</p><h1 className="mt-3 text-3xl font-black sm:text-4xl">{viewer.role === "professional" ? (isArabic ? "المناوبات المتاحة" : "Available shifts") : (isArabic ? "المناوبات" : "Shifts")}</h1></div></div>
-      {viewer.role === "organization" && <Card className="mt-8 p-6 sm:p-8"><h2 className="mb-6 text-xl font-black">{isArabic ? "إنشاء مناوبة جديدة" : "Create a new shift"}</h2><CreateShiftForm locale={locale} /></Card>}
+      {viewer.role === "organization" && <Card className="mt-8 p-6 sm:p-8"><h2 className="mb-6 text-xl font-black">{isArabic ? "إنشاء مناوبة جديدة" : "Create a new shift"}</h2><CreateShiftForm locale={locale} canPublish={viewer.verificationStatus === "verified"} /></Card>}
       <section className="mt-8 grid gap-4" aria-label={isArabic ? "قائمة المناوبات" : "Shift list"}>
         {shifts.length ? shifts.map((shift) => (
           <Card key={shift.id} className="grid gap-5 p-6 md:grid-cols-[1fr_auto] md:items-center">

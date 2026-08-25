@@ -39,8 +39,16 @@ export async function POST(request: NextRequest) {
   const parsed = shiftCreateSchema.safeParse(body);
   if (!parsed.success) return validationError(parsed.error);
 
-  const { data: membership } = await context.supabase.from("organization_members").select("organization_id, role").eq("user_id", context.viewer.id).in("role", ["owner", "manager", "recruiter"]).limit(1).maybeSingle();
+  const { data: membership, error: membershipError } = await context.supabase.from("organization_members").select("organization_id, role").eq("user_id", context.viewer.id).in("role", ["owner", "manager", "recruiter"]).limit(1).maybeSingle();
+  if (membershipError) console.error("Managed organization lookup failed", { code: membershipError.code, message: membershipError.message });
   if (!membership) return apiError("FORBIDDEN", "No managed organization was found.", 403);
+
+  if (parsed.data.publish) {
+    const { data: organization } = await context.supabase.from("organizations").select("status").eq("id", membership.organization_id).single();
+    if (organization?.status !== "active") {
+      return apiError("ORGANIZATION_NOT_ACTIVE", "The organization must be approved before publishing shifts.", 403);
+    }
+  }
 
   const { data, error } = await context.supabase.from("shifts").insert({
     organization_id: membership.organization_id,
@@ -57,6 +65,9 @@ export async function POST(request: NextRequest) {
     status: parsed.data.publish ? "published" : "draft",
   }).select("id, status").single();
 
-  if (error) return apiError("CREATE_FAILED", "The shift could not be created.", 409);
+  if (error) {
+    console.error("Shift creation failed", { code: error.code, message: error.message, details: error.details, hint: error.hint });
+    return apiError("CREATE_FAILED", "The shift could not be created.", 409);
+  }
   return apiSuccess(data, { status: 201 });
 }

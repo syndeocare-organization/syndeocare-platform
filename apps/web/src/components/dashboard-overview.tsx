@@ -66,12 +66,21 @@ export function DashboardOverview({ locale, viewer, summary }: { locale: Locale;
             <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center"><CalendarDays className="mx-auto size-8 text-slate-300" /><p className="mt-4 font-black text-slate-700">{isArabic ? "لا يوجد نشاط بعد" : "No activity yet"}</p><p className="mt-2 text-sm text-slate-500">{professional ? (isArabic ? "ستظهر الفرص المناسبة هنا عند نشرها." : "Matching opportunities will appear here when published.") : (isArabic ? "أنشئ أول مناوبة لبدء استقبال الطلبات." : "Create the first shift to start receiving applications.")}</p></div>
           )}
         </Card>
-        <Card className="bg-brand-950 p-6 text-white sm:p-8">
-          <span className="grid size-11 place-items-center rounded-2xl bg-white/10 text-brand-200"><FileCheck2 className="size-5" /></span>
-          <h2 className="mt-8 text-xl font-black">{isArabic ? "أكمل التحقق" : "Complete verification"}</h2>
-          <p className="mt-3 text-sm leading-7 text-brand-100/65">{isArabic ? "ارفع المستندات المطلوبة لتسريع المراجعة وإظهار شارة موثّق." : "Upload the required documents to speed up review and earn a verified badge."}</p>
-          <button type="button" disabled className="mt-7 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 text-sm font-bold text-white/70">{isArabic ? "رفع المستندات — قريبًا" : "Upload documents — soon"}</button>
-        </Card>
+        {viewer.verificationStatus === "verified" ? (
+          <Card className="bg-emerald-950 p-6 text-white sm:p-8">
+            <span className="grid size-11 place-items-center rounded-2xl bg-white/10 text-emerald-200"><BadgeCheck className="size-5" /></span>
+            <h2 className="mt-8 text-xl font-black">{isArabic ? "اكتمل التحقق" : "Verification complete"}</h2>
+            <p className="mt-3 text-sm leading-7 text-emerald-100/70">{isArabic ? "حسابك معتمد ويمكنه استخدام مزايا المنصة المخصصة للحسابات الموثّقة." : "Your account is approved and can use the platform features reserved for verified accounts."}</p>
+            <div className="mt-7 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 text-sm font-bold text-white"><CheckCircle2 className="size-4" />{isArabic ? "حساب موثّق" : "Verified account"}</div>
+          </Card>
+        ) : (
+          <Card className="bg-brand-950 p-6 text-white sm:p-8">
+            <span className="grid size-11 place-items-center rounded-2xl bg-white/10 text-brand-200"><FileCheck2 className="size-5" /></span>
+            <h2 className="mt-8 text-xl font-black">{isArabic ? "أكمل التحقق" : "Complete verification"}</h2>
+            <p className="mt-3 text-sm leading-7 text-brand-100/65">{isArabic ? "ارفع المستندات المطلوبة لتسريع المراجعة وإظهار شارة موثّق." : "Upload the required documents to speed up review and earn a verified badge."}</p>
+            <button type="button" disabled className="mt-7 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 text-sm font-bold text-white/70">{isArabic ? "رفع المستندات — قريبًا" : "Upload documents — soon"}</button>
+          </Card>
+        )}
       </section>
     </>
   );

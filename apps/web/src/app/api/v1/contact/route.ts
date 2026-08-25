@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
     if (error) return apiError("MESSAGE_FAILED", "Your message could not be saved.", 503);
 
     after(async () => {
-      await sendSupportNotification(parsed.data);
+      const delivery = await sendSupportNotification(parsed.data);
+      if (!delivery.sent) console.error("Support notification delivery failed", { reason: delivery.reason });
     });
     return apiSuccess({ received: true, notification: "queued" }, { status: 202 });
   } catch {
