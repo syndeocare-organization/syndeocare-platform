@@ -24,7 +24,7 @@ jobs:
           cat .bootstrap/payload-*.b64 | base64 --decode > /tmp/syndeocare-platform.tar.gz
           tar -xzf /tmp/syndeocare-platform.tar.gz -C .
           rm -rf .bootstrap
-          rm -f .github/workflows/bootstrap.yml
+          rm -f .github/workflows/ci.yml
 
       - name: Publish the platform source
         shell: bash
