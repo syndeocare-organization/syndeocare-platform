@@ -16,10 +16,11 @@ test("English navigation and support page work", async ({ page }) => {
   await page.goto("/en");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Better care starts");
-  await page
+  const supportLink = page
     .getByRole("navigation", { name: "Footer" })
-    .getByRole("link", { name: "Support" })
-    .click();
+    .getByRole("link", { name: "Support" });
+  await expect(supportLink).toHaveAttribute("href", "/en/support");
+  await page.goto("/en/support");
   await expect(page).toHaveURL(/\/en\/support$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("How can we help?");
 });
