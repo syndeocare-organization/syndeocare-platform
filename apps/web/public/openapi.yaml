@@ -1,0 +1,184 @@
+openapi: 3.1.0
+info:
+  title: SyndeoCare Platform API
+  version: 1.0.0
+  description: Versioned backend-for-frontend used by the SyndeoCare web and Expo clients.
+servers:
+  - url: https://api.syndeocare.ai/api/v1
+  - url: http://localhost:3000/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /me:
+    get:
+      summary: Return the authenticated user's minimal profile
+      responses:
+        "200":
+          description: Authenticated viewer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ViewerResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /onboarding:
+    post:
+      summary: Complete professional or organization onboarding atomically
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/ProfessionalOnboarding"
+                - $ref: "#/components/schemas/OrganizationOnboarding"
+      responses:
+        "200": { description: Onboarding completed }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /shifts:
+    get:
+      summary: List visible shifts
+      parameters:
+        - { name: city, in: query, schema: { type: string } }
+        - { name: specialty, in: query, schema: { type: string } }
+        - { name: after, in: query, schema: { type: string, format: date-time } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses:
+        "200": { description: Paginated shifts }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      summary: Create a shift for the caller's organization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShiftInput"
+      responses:
+        "201": { description: Shift created }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { description: Organization role required }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /applications:
+    post:
+      summary: Apply to a published shift as a professional
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [shiftId]
+              properties:
+                shiftId: { type: string, format: uuid }
+                note: { type: string, maxLength: 1000 }
+      responses:
+        "201": { description: Application submitted }
+        "409": { description: Duplicate or unavailable application }
+  /contact:
+    post:
+      security: []
+      summary: Send a public support request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "202": { description: Request accepted }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /account:
+    delete:
+      summary: Permanently delete the authenticated account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmation]
+              properties:
+                confirmation: { type: string, const: DELETE }
+      responses:
+        "204": { description: Account deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Authentication required
+    ValidationError:
+      description: Invalid request fields
+  schemas:
+    ViewerResponse:
+      type: object
+      required: [ok, data]
+      properties:
+        ok: { type: boolean, const: true }
+        data:
+          type: object
+          required: [id, email, role, onboardingComplete, verificationStatus]
+          properties:
+            id: { type: string, format: uuid }
+            email: { type: string, format: email }
+            fullName: { type: [string, "null"] }
+            role: { type: string, enum: [professional, organization, admin] }
+            onboardingComplete: { type: boolean }
+            verificationStatus: { type: string, enum: [not_started, pending, verified, rejected] }
+    OnboardingBase:
+      type: object
+      required: [fullName, phone, city, countryCode, locale]
+      properties:
+        fullName: { type: string, minLength: 2, maxLength: 100 }
+        phone: { type: string }
+        city: { type: string, minLength: 2, maxLength: 80 }
+        countryCode: { type: string, minLength: 2, maxLength: 2 }
+        locale: { type: string, enum: [ar, en] }
+    ProfessionalOnboarding:
+      allOf:
+        - $ref: "#/components/schemas/OnboardingBase"
+        - type: object
+          required: [role, specialty, licenseNumber, yearsExperience]
+          properties:
+            role: { type: string, const: professional }
+            specialty: { type: string }
+            licenseNumber: { type: string }
+            yearsExperience: { type: integer, minimum: 0, maximum: 70 }
+    OrganizationOnboarding:
+      allOf:
+        - $ref: "#/components/schemas/OnboardingBase"
+        - type: object
+          required: [role, organizationName, organizationType, licenseNumber]
+          properties:
+            role: { type: string, const: organization }
+            organizationName: { type: string }
+            organizationType: { type: string, enum: [hospital, clinic, home_care, other] }
+            licenseNumber: { type: string }
+    ShiftInput:
+      type: object
+      required: [title, specialty, city, startsAt, endsAt]
+      properties:
+        title: { type: string, minLength: 3, maxLength: 120 }
+        specialty: { type: string }
+        city: { type: string }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        neededCount: { type: integer, minimum: 1, maximum: 100, default: 1 }
+        hourlyRate: { type: number, exclusiveMinimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3, default: SAR }
+        requirements: { type: array, maxItems: 20, items: { type: string } }
+        publish: { type: boolean, default: false }
+    ContactInput:
+      type: object
+      required: [name, email, subject, message]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 100 }
+        email: { type: string, format: email }
+        subject: { type: string, minLength: 3, maxLength: 140 }
+        message: { type: string, minLength: 10, maxLength: 5000 }
+        locale: { type: string, enum: [ar, en], default: ar }

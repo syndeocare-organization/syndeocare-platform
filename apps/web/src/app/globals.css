@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #eef9fb;
+  --color-brand-100: #d5f1f5;
+  --color-brand-200: #afe3eb;
+  --color-brand-300: #7ccfdd;
+  --color-brand-400: #43b3c6;
+  --color-brand-500: #2696ab;
+  --color-brand-600: #197a91;
+  --color-brand-700: #155f74;
+  --color-brand-800: #164d5d;
+  --color-brand-900: #153f4d;
+  --color-brand-950: #082936;
+  --color-violet-500: #7059b8;
+  --color-violet-600: #5e45a4;
+  --color-cream-50: #fcfbf7;
+  --color-cream-100: #f6f2e9;
+  --font-sans: "Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+  --background: #fcfbf7;
+  --foreground: #082936;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: #afe3eb;
+  color: #082936;
+}
+
+.page-shell {
+  width: min(100% - 2rem, 76rem);
+  margin-inline: auto;
+}
+
+.section-space {
+  padding-block: clamp(4.5rem, 9vw, 8rem);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #155f74;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  width: 1.75rem;
+  height: 1px;
+  background: #43b3c6;
+  content: "";
+}
+
+.soft-grid {
+  background-image:
+    linear-gradient(rgba(21, 95, 116, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(21, 95, 116, 0.045) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
