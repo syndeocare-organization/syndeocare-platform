@@ -39,7 +39,7 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: "1"
       - name: Install browser
-        run: pnpm --filter web exec playwright install --with-deps chromium
+        run: pnpm --filter web exec playwright install --with-deps chromium webkit
       - name: Browser tests
         run: pnpm test:e2e
         env:
