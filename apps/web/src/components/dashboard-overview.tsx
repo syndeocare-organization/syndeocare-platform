@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import type { Viewer } from "@/lib/auth/dal";
 import type { DashboardSummary } from "@/lib/data/dashboard";
 import { localePath, type Locale } from "@/lib/i18n";
+import { shiftStatusLabel } from "@/lib/status-labels";
 import { cn } from "@/lib/utils";
 
 export function DashboardOverview({ locale, viewer, summary }: { locale: Locale; viewer: Viewer; summary: DashboardSummary }) {
@@ -58,7 +59,7 @@ export function DashboardOverview({ locale, viewer, summary }: { locale: Locale;
               {summary.recentShifts.map((shift) => (
                 <div key={shift.id} className="flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
                   <div><p className="font-black text-slate-900">{shift.title}</p><p className="mt-2 flex flex-wrap gap-4 text-xs text-slate-500"><span className="inline-flex items-center gap-1.5"><MapPin className="size-3.5" />{shift.city}</span><span className="inline-flex items-center gap-1.5"><Clock3 className="size-3.5" />{new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(shift.startsAt))}</span></p></div>
-                  <span className="w-fit rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">{shift.status}</span>
+                  <span className="w-fit rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">{shiftStatusLabel(shift.status, locale)}</span>
                 </div>
               ))}
             </div>

@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, LabelHTMLAttributes, SelectHTMLAttributes } from "react";
+import type { HTMLAttributes, InputHTMLAttributes, LabelHTMLAttributes, SelectHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
@@ -26,5 +26,15 @@ export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectE
       )}
       {...props}
     />
+  );
+}
+
+export function FieldError({ className, children, ...props }: HTMLAttributes<HTMLParagraphElement>) {
+  if (!children) return null;
+
+  return (
+    <p className={cn("mt-2 text-xs font-semibold text-red-700", className)} {...props}>
+      {children}
+    </p>
   );
 }

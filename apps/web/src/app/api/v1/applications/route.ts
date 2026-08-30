@@ -14,6 +14,15 @@ export async function POST(request: NextRequest) {
   const parsed = applicationCreateSchema.safeParse(body);
   if (!parsed.success) return validationError(parsed.error);
 
+  const { data: shift, error: shiftError } = await context.supabase
+    .from("shifts")
+    .select("id")
+    .eq("id", parsed.data.shiftId)
+    .eq("status", "published")
+    .gt("starts_at", new Date().toISOString())
+    .maybeSingle();
+  if (shiftError || !shift) return apiError("SHIFT_UNAVAILABLE", "This shift is no longer available.", 409);
+
   const { data, error } = await context.supabase.from("applications").insert({ shift_id: parsed.data.shiftId, professional_id: context.viewer.id, note: parsed.data.note, status: "applied" }).select("id, status, created_at").single();
   if (error) return apiError("APPLICATION_FAILED", "The application could not be submitted.", 409);
   return apiSuccess(data, { status: 201 });

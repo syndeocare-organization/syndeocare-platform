@@ -33,6 +33,14 @@ test("health endpoint stays explicit when cloud services are absent", async ({ r
   expect(health.services.web).toBe("up");
 });
 
+test("account recovery is reachable from sign in", async ({ page }) => {
+  await page.goto("/ar/auth/login");
+  await page.getByRole("link", { name: "نسيت كلمة المرور؟" }).click();
+  await expect(page).toHaveURL(/\/ar\/auth\/forgot-password$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("استعد الوصول إلى حسابك");
+  await expect(page.getByRole("button", { name: "إرسال رابط الاستعادة" })).toBeVisible();
+});
+
 test("mobile layout does not overflow horizontally", async ({ page, isMobile }) => {
   test.skip(!isMobile, "Mobile project only");
   await page.goto("/ar");

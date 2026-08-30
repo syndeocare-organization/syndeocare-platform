@@ -88,6 +88,12 @@ paths:
       responses:
         "202": { description: Request accepted }
         "422": { $ref: "#/components/responses/ValidationError" }
+  /notifications:
+    patch:
+      summary: Mark all of the authenticated user's notifications as read
+      responses:
+        "200": { description: Notifications updated }
+        "401": { $ref: "#/components/responses/Unauthorized" }
   /account:
     delete:
       summary: Permanently delete the authenticated account

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getSiteUrl } from "@/lib/env";
+import { localizedFieldErrors } from "@/lib/form-errors";
 import { isLocale, localePath, type Locale } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 import { safePath } from "@/lib/utils";
@@ -16,20 +17,61 @@ export type AuthState = {
 
 const signInSchema = z.object({
   email: z.email().max(254),
-  password: z.string().min(8).max(128),
+  password: z.string().min(6).max(128),
   locale: z.enum(["ar", "en"]),
   next: z.string().optional(),
 });
 
+const passwordSchema = z
+  .string()
+  .min(10)
+  .max(128)
+  .regex(/\p{L}/u)
+  .regex(/\p{N}/u);
+
 const signUpSchema = signInSchema.extend({
   fullName: z.string().trim().min(2).max(100),
-  password: z.string().min(10).max(128),
+  password: passwordSchema,
   role: z.enum(["professional", "organization"]),
   acceptedTerms: z.literal("on"),
 });
 
+const recoveryRequestSchema = z.object({
+  email: z.email().max(254),
+  locale: z.enum(["ar", "en"]),
+});
+
+const passwordUpdateSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string(),
+    locale: z.enum(["ar", "en"]),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match.",
+  });
+
 function message(locale: Locale, ar: string, en: string) {
   return locale === "ar" ? ar : en;
+}
+
+const authFieldMessages = {
+  email: ["أدخل بريدًا إلكترونيًا صحيحًا.", "Enter a valid email address."],
+  password: ["تحقق من متطلبات كلمة المرور.", "Check the password requirements."],
+  confirmPassword: ["يجب أن تتطابق كلمتا المرور.", "The passwords must match."],
+  fullName: ["أدخل الاسم الكامل كما يظهر في الهوية.", "Enter your full name as shown on your ID."],
+  role: ["اختر نوع الحساب.", "Choose an account type."],
+  acceptedTerms: ["يجب الموافقة على الشروط وسياسة الخصوصية.", "Accept the Terms and Privacy Policy to continue."],
+} as const;
+
+function fieldErrors(error: z.ZodError, locale: Locale) {
+  return localizedFieldErrors(
+    error,
+    locale,
+    authFieldMessages,
+    ["تحقق من هذا الحقل.", "Check this field."],
+  );
 }
 
 export async function signIn(_previous: AuthState, formData: FormData): Promise<AuthState> {
@@ -39,7 +81,7 @@ export async function signIn(_previous: AuthState, formData: FormData): Promise<
     return {
       status: "error",
       message: message(locale, "تحقق من البريد وكلمة المرور.", "Check your email and password."),
-      fieldErrors: parsed.error.flatten().fieldErrors,
+      fieldErrors: fieldErrors(parsed.error, locale),
     };
   }
 
@@ -72,7 +114,7 @@ export async function signUp(_previous: AuthState, formData: FormData): Promise<
     return {
       status: "error",
       message: message(fallbackLocale, "أكمل الحقول المطلوبة وتحقق من كلمة المرور.", "Complete the required fields and check your password."),
-      fieldErrors: parsed.error.flatten().fieldErrors,
+      fieldErrors: fieldErrors(parsed.error, fallbackLocale),
     };
   }
 
@@ -117,6 +159,97 @@ export async function signUp(_previous: AuthState, formData: FormData): Promise<
 
   if (hasSession) redirect(localePath(locale, "/onboarding"));
   return { status: "idle" };
+}
+
+export async function requestPasswordReset(
+  _previous: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const parsed = recoveryRequestSchema.safeParse(Object.fromEntries(formData));
+  const locale: Locale = formData.get("locale") === "en" ? "en" : "ar";
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: message(locale, "أدخل بريدًا إلكترونيًا صحيحًا.", "Enter a valid email address."),
+      fieldErrors: fieldErrors(parsed.error, locale),
+    };
+  }
+
+  try {
+    const supabase = await createClient();
+    const callback = new URL("/auth/callback", getSiteUrl());
+    callback.searchParams.set("next", `/${parsed.data.locale}/auth/reset-password`);
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+      redirectTo: callback.toString(),
+    });
+
+    if (error) {
+      return {
+        status: "error",
+        message: message(locale, "تعذر إرسال الرابط الآن. حاول بعد قليل.", "We could not send the link. Try again shortly."),
+      };
+    }
+  } catch {
+    return {
+      status: "error",
+      message: message(locale, "خدمة استعادة الحساب غير متاحة مؤقتًا.", "Account recovery is temporarily unavailable."),
+    };
+  }
+
+  return {
+    status: "success",
+    message: message(
+      locale,
+      "إذا كان البريد مسجلًا، فسيصلك رابط آمن لإعادة تعيين كلمة المرور.",
+      "If the email is registered, you will receive a secure reset link.",
+    ),
+  };
+}
+
+export async function updatePassword(
+  _previous: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const parsed = passwordUpdateSchema.safeParse(Object.fromEntries(formData));
+  const locale: Locale = formData.get("locale") === "en" ? "en" : "ar";
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: message(locale, "تحقق من كلمة المرور وتطابقها.", "Check the password and confirmation."),
+      fieldErrors: fieldErrors(parsed.error, locale),
+    };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      return {
+        status: "error",
+        message: message(locale, "انتهت صلاحية الرابط. اطلب رابطًا جديدًا.", "This link has expired. Request a new one."),
+      };
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+    if (error) {
+      return {
+        status: "error",
+        message: message(locale, "تعذر تحديث كلمة المرور. اطلب رابطًا جديدًا.", "We could not update the password. Request a new link."),
+      };
+    }
+
+    await supabase.auth.signOut({ scope: "local" });
+  } catch {
+    return {
+      status: "error",
+      message: message(locale, "الخدمة غير متاحة مؤقتًا. حاول لاحقًا.", "The service is temporarily unavailable."),
+    };
+  }
+
+  revalidatePath("/", "layout");
+  redirect(localePath(locale, "/auth/login?reset=success"));
 }
 
 export async function signOut(formData: FormData) {

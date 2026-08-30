@@ -4,6 +4,7 @@ import { onboardingSchema } from "@syndeocare/contracts";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { localizedFieldErrors } from "@/lib/form-errors";
 import { localePath } from "@/lib/i18n";
 
 export type OnboardingState = {
@@ -11,6 +12,18 @@ export type OnboardingState = {
   message?: string;
   fieldErrors?: Record<string, string[]>;
 };
+
+const onboardingFieldMessages = {
+  fullName: ["أدخل الاسم الكامل.", "Enter your full name."],
+  phone: ["أدخل رقم جوال صحيحًا مع مفتاح الدولة.", "Enter a valid mobile number with the country code."],
+  city: ["أدخل المدينة.", "Enter your city."],
+  countryCode: ["اختر الدولة.", "Choose your country."],
+  specialty: ["أدخل التخصص المهني.", "Enter your professional specialty."],
+  licenseNumber: ["أدخل رقم ترخيص صحيحًا.", "Enter a valid license number."],
+  yearsExperience: ["أدخل سنوات الخبرة بين 0 و70.", "Enter years of experience between 0 and 70."],
+  organizationName: ["أدخل اسم المنشأة.", "Enter the organization name."],
+  organizationType: ["اختر نوع المنشأة.", "Choose the organization type."],
+} as const;
 
 export async function completeOnboarding(_previous: OnboardingState, formData: FormData): Promise<OnboardingState> {
   const input = Object.fromEntries(formData);
@@ -21,7 +34,12 @@ export async function completeOnboarding(_previous: OnboardingState, formData: F
     return {
       status: "error",
       message: locale === "ar" ? "راجع الحقول المطلوبة ثم حاول مرة أخرى." : "Review the required fields and try again.",
-      fieldErrors: parsed.error.flatten().fieldErrors,
+      fieldErrors: localizedFieldErrors(
+        parsed.error,
+        locale,
+        onboardingFieldMessages,
+        ["تحقق من هذا الحقل.", "Check this field."],
+      ),
     };
   }
 

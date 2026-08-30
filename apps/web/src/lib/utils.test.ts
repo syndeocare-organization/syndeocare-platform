@@ -9,6 +9,15 @@ describe("navigation safety", () => {
   it("blocks protocol-relative redirects", () => {
     expect(safePath("//malicious.example", "/ar")).toBe("/ar");
   });
+
+  it("blocks backslash-based cross-origin redirects", () => {
+    expect(safePath("/\\malicious.example", "/ar")).toBe("/ar");
+  });
+
+  it("blocks absolute and malformed URLs", () => {
+    expect(safePath("https://malicious.example", "/en")).toBe("/en");
+    expect(safePath("/%", "/en")).toBe("/en");
+  });
 });
 
 describe("initials", () => {
