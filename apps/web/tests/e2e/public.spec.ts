@@ -33,9 +33,12 @@ test("health endpoint stays explicit when cloud services are absent", async ({ r
   expect(health.services.web).toBe("up");
 });
 
-test("account recovery is reachable from sign in", async ({ page }) => {
+test("account recovery is reachable from sign in", async ({ page, isMobile }) => {
   await page.goto("/ar/auth/login");
-  await page.getByRole("link", { name: "نسيت كلمة المرور؟" }).click();
+  const recoveryLink = page.getByRole("link", { name: "نسيت كلمة المرور؟" });
+  await expect(recoveryLink).toHaveAttribute("href", "/ar/auth/forgot-password");
+  if (isMobile) await recoveryLink.tap();
+  else await recoveryLink.click();
   await expect(page).toHaveURL(/\/ar\/auth\/forgot-password$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("استعد الوصول إلى حسابك");
   await expect(page.getByRole("button", { name: "إرسال رابط الاستعادة" })).toBeVisible();
