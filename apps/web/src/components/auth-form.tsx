@@ -76,12 +76,12 @@ export function AuthForm({ locale, mode, defaultRole = "professional", next }: P
         <FieldError id="password-error">{state.fieldErrors?.password?.[0]}</FieldError>
         {mode === "login" && (
           <div className="mt-1 text-end">
-            <a
+            <Link
               className="inline-flex min-h-11 items-center text-xs font-black text-brand-700 hover:text-brand-900"
               href={localePath(locale, "/auth/forgot-password")}
             >
               {isArabic ? "نسيت كلمة المرور؟" : "Forgot your password?"}
-            </a>
+            </Link>
           </div>
         )}
       </div>
