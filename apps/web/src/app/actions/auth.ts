@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getSiteUrl } from "@/lib/env";
@@ -14,6 +15,31 @@ export type AuthState = {
   message?: string;
   fieldErrors?: Record<string, string[]>;
 };
+
+const PENDING_EMAIL_COOKIE = "syndeocare_pending_email";
+
+function authCallback(locale: Locale, next: string) {
+  const callback = new URL("/auth/confirm", getSiteUrl());
+  callback.searchParams.set("next", `/${locale}${next}`);
+  return callback.toString();
+}
+
+async function rememberPendingEmail(email: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(PENDING_EMAIL_COOKIE, email, {
+    httpOnly: true,
+    maxAge: 60 * 60,
+    path: "/",
+    sameSite: "lax",
+    secure: getSiteUrl().startsWith("https://"),
+  });
+}
+
+function authErrorCode(error: unknown) {
+  if (!error || typeof error !== "object") return "";
+  const code = "code" in error ? error.code : "";
+  return typeof code === "string" ? code : "";
+}
 
 const signInSchema = z.object({
   email: z.email().max(254),
@@ -85,21 +111,32 @@ export async function signIn(_previous: AuthState, formData: FormData): Promise<
     };
   }
 
-  const { email, password, locale, next } = parsed.data;
+  const { password, locale, next } = parsed.data;
+  const email = parsed.data.email.trim().toLowerCase();
+  let needsConfirmation = false;
   try {
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      return {
-        status: "error",
-        message: message(locale, "بيانات الدخول غير صحيحة أو الحساب غير مفعّل.", "Your credentials are invalid or the account is not active."),
-      };
+      if (authErrorCode(error) === "email_not_confirmed") {
+        await rememberPendingEmail(email);
+        needsConfirmation = true;
+      } else {
+        return {
+          status: "error",
+          message: message(locale, "البريد الإلكتروني أو كلمة المرور غير صحيحة.", "Your email or password is incorrect."),
+        };
+      }
     }
   } catch {
     return {
       status: "error",
       message: message(locale, "خدمة الدخول غير مهيأة بعد. حاول لاحقًا.", "Sign-in is not configured yet. Please try again later."),
     };
+  }
+
+  if (needsConfirmation) {
+    redirect(localePath(locale, "/auth/check-email?reason=unconfirmed"));
   }
 
   revalidatePath("/", "layout");
@@ -118,37 +155,37 @@ export async function signUp(_previous: AuthState, formData: FormData): Promise<
     };
   }
 
-  const { email, password, fullName, role, locale } = parsed.data;
+  const { password, fullName, role, locale } = parsed.data;
+  const email = parsed.data.email.trim().toLowerCase();
   let hasSession = false;
   try {
     const supabase = await createClient();
-    const next = `/${locale}/onboarding`;
-    const callback = new URL("/auth/callback", getSiteUrl());
-    callback.searchParams.set("next", next);
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: callback.toString(),
+        emailRedirectTo: authCallback(locale, "/onboarding"),
         data: { full_name: fullName, role, locale },
       },
     });
 
     if (error) {
+      const code = authErrorCode(error);
       return {
         status: "error",
-        message: message(locale, "تعذر إنشاء الحساب. قد يكون البريد مستخدمًا مسبقًا.", "We could not create the account. The email may already be in use."),
+        message: code === "over_email_send_rate_limit"
+          ? message(locale, "تم إرسال رسالة قبل قليل. انتظر دقيقة ثم أعد المحاولة.", "An email was sent recently. Wait a minute, then try again.")
+          : code === "signup_disabled"
+            ? message(locale, "إنشاء الحسابات متوقف مؤقتًا. تواصل مع الدعم.", "Account creation is temporarily paused. Contact support.")
+            : message(locale, "تعذر إنشاء الحساب الآن. راجع البيانات وحاول مرة أخرى.", "We could not create the account. Review the details and try again."),
       };
     }
 
     hasSession = Boolean(data.session);
 
     if (!hasSession) {
-      return {
-        status: "success",
-        message: message(locale, "أرسلنا رابط التحقق إلى بريدك. افتحه لإكمال التسجيل.", "We sent a verification link to your email. Open it to continue."),
-      };
+      await rememberPendingEmail(email);
     }
   } catch {
     return {
@@ -157,8 +194,51 @@ export async function signUp(_previous: AuthState, formData: FormData): Promise<
     };
   }
 
-  if (hasSession) redirect(localePath(locale, "/onboarding"));
-  return { status: "idle" };
+  redirect(localePath(locale, hasSession ? "/onboarding" : "/auth/check-email"));
+}
+
+export async function resendSignupConfirmation(
+  _previous: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const locale: Locale = formData.get("locale") === "en" ? "en" : "ar";
+  const cookieStore = await cookies();
+  const email = cookieStore.get(PENDING_EMAIL_COOKIE)?.value?.trim().toLowerCase();
+
+  if (!email || !z.email().safeParse(email).success) {
+    return {
+      status: "error",
+      message: message(locale, "ابدأ التسجيل من جديد لتأكيد البريد الصحيح.", "Start registration again to confirm the correct email."),
+    };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: authCallback(locale, "/onboarding") },
+    });
+
+    if (error) {
+      return {
+        status: "error",
+        message: authErrorCode(error) === "over_email_send_rate_limit"
+          ? message(locale, "انتظر قليلًا قبل طلب رسالة أخرى.", "Please wait before requesting another email.")
+          : message(locale, "تعذر إرسال الرسالة الآن. حاول بعد قليل.", "We could not send the email. Try again shortly."),
+      };
+    }
+  } catch {
+    return {
+      status: "error",
+      message: message(locale, "خدمة البريد غير متاحة مؤقتًا.", "Email delivery is temporarily unavailable."),
+    };
+  }
+
+  return {
+    status: "success",
+    message: message(locale, "أرسلنا رابطًا جديدًا. افحص الوارد والرسائل غير المرغوبة.", "We sent a new link. Check your inbox and spam folder."),
+  };
 }
 
 export async function requestPasswordReset(
@@ -178,10 +258,8 @@ export async function requestPasswordReset(
 
   try {
     const supabase = await createClient();
-    const callback = new URL("/auth/callback", getSiteUrl());
-    callback.searchParams.set("next", `/${parsed.data.locale}/auth/reset-password`);
     const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-      redirectTo: callback.toString(),
+      redirectTo: authCallback(parsed.data.locale, "/auth/reset-password"),
     });
 
     if (error) {

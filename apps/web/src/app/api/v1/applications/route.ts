@@ -4,6 +4,22 @@ import { apiError, apiSuccess, validationError } from "@/lib/api";
 import { getApiContext } from "@/lib/auth/api-context";
 import { isTrustedMutation } from "@/lib/request-security";
 
+export async function GET(request: NextRequest) {
+  const context = await getApiContext(request);
+  if (!context) return apiError("UNAUTHORIZED", "Authentication is required.", 401);
+
+  let query = context.supabase
+    .from("applications")
+    .select("id, shift_id, professional_id, note, status, created_at, updated_at, shifts(title, specialty, city, starts_at, ends_at)")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (context.viewer.role === "professional") query = query.eq("professional_id", context.viewer.id);
+
+  const { data, error } = await query;
+  if (error) return apiError("QUERY_FAILED", "Applications could not be loaded.", 500);
+  return apiSuccess({ items: data });
+}
+
 export async function POST(request: NextRequest) {
   if (!isTrustedMutation(request)) return apiError("INVALID_ORIGIN", "The request origin is not allowed.", 403);
   const context = await getApiContext(request);

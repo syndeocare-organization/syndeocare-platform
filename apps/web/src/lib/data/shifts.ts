@@ -16,9 +16,13 @@ export type ShiftListItem = {
   status: string;
   organizationName: string | null;
   applicationStatus: string | null;
+  applicationCount: number;
 };
 
-export async function getShiftsForViewer(viewer: Viewer): Promise<ShiftListItem[]> {
+export async function getShiftsForViewer(
+  viewer: Viewer,
+  filters: { city?: string; specialty?: string } = {},
+): Promise<ShiftListItem[]> {
   const supabase = await createClient();
   let query = supabase
     .from("shifts")
@@ -28,6 +32,8 @@ export async function getShiftsForViewer(viewer: Viewer): Promise<ShiftListItem[
 
   if (viewer.role === "professional") {
     query = query.eq("status", "published").gte("starts_at", new Date().toISOString());
+    if (filters.city) query = query.ilike("city", `%${filters.city}%`);
+    if (filters.specialty) query = query.ilike("specialty", `%${filters.specialty}%`);
   } else if (viewer.role === "organization") {
     const { data: membership } = await supabase.from("organization_members").select("organization_id").eq("user_id", viewer.id).limit(1).maybeSingle();
     if (!membership) return [];
@@ -38,9 +44,13 @@ export async function getShiftsForViewer(viewer: Viewer): Promise<ShiftListItem[
   if (error || !data) return [];
 
   const applicationStatuses = new Map<string, string>();
+  const applicationCounts = new Map<string, number>();
   if (viewer.role === "professional" && data.length) {
     const { data: applications } = await supabase.from("applications").select("shift_id, status").eq("professional_id", viewer.id).in("shift_id", data.map((shift) => shift.id));
     (applications ?? []).forEach((application) => applicationStatuses.set(application.shift_id, application.status));
+  } else if (data.length) {
+    const { data: applications } = await supabase.from("applications").select("shift_id").in("shift_id", data.map((shift) => shift.id));
+    for (const application of applications ?? []) applicationCounts.set(application.shift_id, (applicationCounts.get(application.shift_id) ?? 0) + 1);
   }
 
   return data.map((shift) => {
@@ -58,6 +68,7 @@ export async function getShiftsForViewer(viewer: Viewer): Promise<ShiftListItem[
       status: shift.status,
       organizationName: Array.isArray(organization) ? organization[0]?.name ?? null : organization?.name ?? null,
       applicationStatus: applicationStatuses.get(shift.id) ?? null,
+      applicationCount: applicationCounts.get(shift.id) ?? 0,
     };
   });
 }

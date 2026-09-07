@@ -8,7 +8,7 @@ import { FieldError, Input, Label, Select } from "@/components/ui/field";
 import type { Viewer } from "@/lib/auth/dal";
 import type { Locale } from "@/lib/i18n";
 
-export function OnboardingForm({ locale, viewer }: { locale: Locale; viewer: Viewer }) {
+export function OnboardingForm({ locale, viewer, teamMember = false }: { locale: Locale; viewer: Viewer; teamMember?: boolean }) {
   const [state, action, pending] = useActionState(completeOnboarding, { status: "idle" } satisfies OnboardingState);
   const isArabic = locale === "ar";
   const isProfessional = viewer.role === "professional";
@@ -17,7 +17,7 @@ export function OnboardingForm({ locale, viewer }: { locale: Locale; viewer: Vie
   return (
     <form action={action} className="grid gap-6">
       <input type="hidden" name="locale" value={locale} />
-      <input type="hidden" name="role" value={viewer.role} />
+      <input type="hidden" name="role" value={teamMember ? "organization_member" : viewer.role} />
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-2">
@@ -27,7 +27,7 @@ export function OnboardingForm({ locale, viewer }: { locale: Locale; viewer: Vie
         </div>
         <div>
           <Label htmlFor="phone">{isArabic ? "رقم الجوال" : "Mobile number"}</Label>
-          <Input id="phone" name="phone" type="tel" dir="ltr" placeholder="+966 5X XXX XXXX" autoComplete="tel" aria-invalid={Boolean(state.fieldErrors?.phone)} aria-describedby={state.fieldErrors?.phone ? "phone-error" : undefined} required />
+          <Input id="phone" name="phone" type="tel" dir="ltr" placeholder="+967 / +966" autoComplete="tel" aria-invalid={Boolean(state.fieldErrors?.phone)} aria-describedby={state.fieldErrors?.phone ? "phone-error" : undefined} required />
           <FieldError id="phone-error">{state.fieldErrors?.phone?.[0]}</FieldError>
         </div>
         <div>
@@ -37,7 +37,8 @@ export function OnboardingForm({ locale, viewer }: { locale: Locale; viewer: Vie
         </div>
         <div>
           <Label htmlFor="countryCode">{isArabic ? "الدولة" : "Country"}</Label>
-          <Select id="countryCode" name="countryCode" defaultValue="SA" aria-invalid={Boolean(state.fieldErrors?.countryCode)} aria-describedby={state.fieldErrors?.countryCode ? "country-error" : undefined}>
+          <Select id="countryCode" name="countryCode" defaultValue="YE" aria-invalid={Boolean(state.fieldErrors?.countryCode)} aria-describedby={state.fieldErrors?.countryCode ? "country-error" : undefined}>
+            <option value="YE">{isArabic ? "اليمن" : "Yemen"}</option>
             <option value="SA">{isArabic ? "السعودية" : "Saudi Arabia"}</option>
             <option value="AE">{isArabic ? "الإمارات" : "United Arab Emirates"}</option>
             <option value="BH">{isArabic ? "البحرين" : "Bahrain"}</option>
@@ -66,7 +67,7 @@ export function OnboardingForm({ locale, viewer }: { locale: Locale; viewer: Vie
               <FieldError id="experience-error">{state.fieldErrors?.yearsExperience?.[0]}</FieldError>
             </div>
           </>
-        ) : (
+        ) : teamMember ? null : (
           <>
             <div className="sm:col-span-2">
               <Label htmlFor="organizationName">{isArabic ? "اسم المنشأة" : "Organization name"}</Label>
@@ -105,7 +106,9 @@ export function OnboardingForm({ locale, viewer }: { locale: Locale; viewer: Vie
 
       <div className="flex items-center gap-3 border-t border-slate-100 pt-5 text-xs text-slate-500">
         {isProfessional ? <Stethoscope className="size-4 text-brand-600" aria-hidden="true" /> : <Building2 className="size-4 text-brand-600" aria-hidden="true" />}
-        {isArabic ? "ستتم مراجعة بيانات الترخيص قبل إظهار حالة موثّق." : "License details are reviewed before a verified status is shown."}
+        {teamMember
+          ? (isArabic ? "ستنضم إلى المنشأة التي دعتك فور حفظ بياناتك الأساسية." : "You will join the inviting organization after saving your core details.")
+          : (isArabic ? "ستتم مراجعة بيانات الترخيص قبل إظهار حالة موثّق." : "License details are reviewed before a verified status is shown.")}
       </div>
     </form>
   );

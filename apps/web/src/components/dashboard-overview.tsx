@@ -79,7 +79,7 @@ export function DashboardOverview({ locale, viewer, summary }: { locale: Locale;
             <span className="grid size-11 place-items-center rounded-2xl bg-white/10 text-brand-200"><FileCheck2 className="size-5" /></span>
             <h2 className="mt-8 text-xl font-black">{isArabic ? "أكمل التحقق" : "Complete verification"}</h2>
             <p className="mt-3 text-sm leading-7 text-brand-100/65">{isArabic ? "ارفع المستندات المطلوبة لتسريع المراجعة وإظهار شارة موثّق." : "Upload the required documents to speed up review and earn a verified badge."}</p>
-            <button type="button" disabled className="mt-7 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 text-sm font-bold text-white/70">{isArabic ? "رفع المستندات — قريبًا" : "Upload documents — soon"}</button>
+            <Link href={localePath(locale, "/verification")} className="mt-7 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 text-sm font-bold text-white transition hover:bg-white/15">{isArabic ? "رفع المستندات" : "Upload documents"}</Link>
           </Card>
         )}
       </section>

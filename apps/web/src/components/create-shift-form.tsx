@@ -4,7 +4,7 @@ import { AlertCircle, CheckCircle2, LoaderCircle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/field";
+import { Input, Label, Select } from "@/components/ui/field";
 import type { Locale } from "@/lib/i18n";
 
 export function CreateShiftForm({ locale, canPublish }: { locale: Locale; canPublish: boolean }) {
@@ -35,7 +35,7 @@ export function CreateShiftForm({ locale, canPublish }: { locale: Locale; canPub
           endsAt: endsAt.toISOString(),
           neededCount: Number(form.get("neededCount")),
           hourlyRate: form.get("hourlyRate") ? Number(form.get("hourlyRate")) : undefined,
-          currency: "SAR",
+          currency: form.get("currency"),
           requirements,
           publish: form.get("publish") === "on",
         }),
@@ -84,7 +84,8 @@ export function CreateShiftForm({ locale, canPublish }: { locale: Locale; canPub
         <div><Label htmlFor="startsAt">{isArabic ? "البداية" : "Starts"}</Label><Input id="startsAt" name="startsAt" type="datetime-local" required /></div>
         <div><Label htmlFor="endsAt">{isArabic ? "النهاية" : "Ends"}</Label><Input id="endsAt" name="endsAt" type="datetime-local" required /></div>
         <div><Label htmlFor="neededCount">{isArabic ? "العدد المطلوب" : "People needed"}</Label><Input id="neededCount" name="neededCount" type="number" min="1" max="100" defaultValue="1" required /></div>
-        <div><Label htmlFor="hourlyRate">{isArabic ? "الأجر بالساعة (ر.س.)" : "Hourly rate (SAR)"}</Label><Input id="hourlyRate" name="hourlyRate" type="number" min="1" step="0.01" /></div>
+        <div><Label htmlFor="hourlyRate">{isArabic ? "الأجر بالساعة" : "Hourly rate"}</Label><Input id="hourlyRate" name="hourlyRate" type="number" min="1" step="0.01" /></div>
+        <div><Label htmlFor="currency">{isArabic ? "العملة" : "Currency"}</Label><Select id="currency" name="currency" defaultValue="YER"><option value="YER">YER — {isArabic ? "ريال يمني" : "Yemeni rial"}</option><option value="SAR">SAR — {isArabic ? "ريال سعودي" : "Saudi riyal"}</option><option value="AED">AED — {isArabic ? "درهم إماراتي" : "UAE dirham"}</option><option value="BHD">BHD — {isArabic ? "دينار بحريني" : "Bahraini dinar"}</option><option value="KWD">KWD — {isArabic ? "دينار كويتي" : "Kuwaiti dinar"}</option><option value="OMR">OMR — {isArabic ? "ريال عُماني" : "Omani rial"}</option><option value="QAR">QAR — {isArabic ? "ريال قطري" : "Qatari riyal"}</option></Select></div>
         <div className="sm:col-span-2"><Label htmlFor="requirements">{isArabic ? "المتطلبات — سطر لكل متطلب" : "Requirements — one per line"}</Label><textarea id="requirements" name="requirements" rows={4} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-brand-600 focus:ring-4 focus:ring-brand-600/10" /></div>
       </div>
       <div>

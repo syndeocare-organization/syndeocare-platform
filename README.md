@@ -6,7 +6,8 @@ React 19, Supabase, Resend, and Expo.
 
 ## Architecture
 
-- `apps/web` — Next.js App Router UI and versioned BFF API for web/mobile
+- `apps/web` — Next.js App Router UI and versioned BFF APIs for web and mobile
+- `api/mobile/v1` — compatibility surface used by the Expo app in `syndeocare/syndeocare`
 - `supabase` — PostgreSQL migrations, Row Level Security, Auth, and Storage setup
 - `packages/contracts` — shared Zod schemas and API contracts
 - `apps/web/public/openapi.yaml` — mobile and partner API specification

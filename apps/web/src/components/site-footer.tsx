@@ -14,6 +14,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
         </div>
         <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-slate-700" aria-label="Footer">
           <Link className="hover:text-brand-700" href={localePath(locale, "/privacy")}>{t.footer.privacy}</Link>
+          <Link className="hover:text-brand-700" href={localePath(locale, "/terms")}>{locale === "ar" ? "الشروط" : "Terms"}</Link>
           <Link className="hover:text-brand-700" href={localePath(locale, "/support")}>{t.nav.support}</Link>
           <Link className="hover:text-brand-700" href={localePath(locale, "/delete-account")}>{t.footer.delete}</Link>
         </nav>

@@ -1,11 +1,11 @@
 "use client";
 
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, LoaderCircle, LockKeyhole, Mail, UserRound } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, Building2, CheckCircle2, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, Stethoscope, UserRound } from "lucide-react";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { signIn, signUp, type AuthState } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
-import { FieldError, Input, Label, Select } from "@/components/ui/field";
+import { FieldError, Input, Label } from "@/components/ui/field";
 import { localePath, type Locale } from "@/lib/i18n";
 
 type Props = {
@@ -19,6 +19,7 @@ export function AuthForm({ locale, mode, defaultRole = "professional", next }: P
   const isArabic = locale === "ar";
   const action = mode === "login" ? signIn : signUp;
   const [state, formAction, pending] = useActionState(action, { status: "idle" } satisfies AuthState);
+  const [showPassword, setShowPassword] = useState(false);
   const Arrow = isArabic ? ArrowLeft : ArrowRight;
 
   return (
@@ -37,11 +38,17 @@ export function AuthForm({ locale, mode, defaultRole = "professional", next }: P
             <FieldError id="full-name-error">{state.fieldErrors?.fullName?.[0]}</FieldError>
           </div>
           <div>
-            <Label htmlFor="role">{isArabic ? "نوع الحساب" : "Account type"}</Label>
-            <Select id="role" name="role" defaultValue={defaultRole} aria-invalid={Boolean(state.fieldErrors?.role)} aria-describedby={state.fieldErrors?.role ? "role-error" : undefined}>
-              <option value="professional">{isArabic ? "مقدم رعاية" : "Care professional"}</option>
-              <option value="organization">{isArabic ? "منشأة صحية" : "Healthcare organization"}</option>
-            </Select>
+            <Label>{isArabic ? "نوع الحساب" : "Account type"}</Label>
+            <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-describedby={state.fieldErrors?.role ? "role-error" : undefined}>
+              <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 p-4 transition has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:ring-4 has-[:checked]:ring-brand-600/10">
+                <input type="radio" name="role" value="professional" defaultChecked={defaultRole === "professional"} className="size-4 accent-brand-700" />
+                <Stethoscope className="size-5 text-brand-600" /><span className="text-sm font-black">{isArabic ? "مقدم رعاية" : "Care professional"}</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 p-4 transition has-[:checked]:border-violet-500 has-[:checked]:bg-violet-500/5 has-[:checked]:ring-4 has-[:checked]:ring-violet-500/10">
+                <input type="radio" name="role" value="organization" defaultChecked={defaultRole === "organization"} className="size-4 accent-violet-600" />
+                <Building2 className="size-5 text-violet-600" /><span className="text-sm font-black">{isArabic ? "منشأة صحية" : "Healthcare organization"}</span>
+              </label>
+            </div>
             <FieldError id="role-error">{state.fieldErrors?.role?.[0]}</FieldError>
           </div>
         </>
@@ -60,7 +67,10 @@ export function AuthForm({ locale, mode, defaultRole = "professional", next }: P
         <Label htmlFor="password">{isArabic ? "كلمة المرور" : "Password"}</Label>
         <div className="relative">
           <LockKeyhole className="pointer-events-none absolute start-4 top-3.5 size-5 text-slate-400" aria-hidden="true" />
-          <Input id="password" name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={mode === "login" ? 6 : 10} className="ps-12" aria-invalid={Boolean(state.fieldErrors?.password)} aria-describedby={mode === "register" ? "password-help password-error" : state.fieldErrors?.password ? "password-error" : undefined} required />
+          <Input id="password" name="password" type={showPassword ? "text" : "password"} autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={mode === "login" ? 6 : 10} className="pe-12 ps-12" aria-invalid={Boolean(state.fieldErrors?.password)} aria-describedby={mode === "register" ? "password-help password-error" : state.fieldErrors?.password ? "password-error" : undefined} required />
+          <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute end-2 top-1.5 grid size-9 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-600/15" aria-label={showPassword ? (isArabic ? "إخفاء كلمة المرور" : "Hide password") : (isArabic ? "إظهار كلمة المرور" : "Show password")}>
+            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
         </div>
         {mode === "register" && <p id="password-help" className="mt-2 text-xs text-slate-500">{isArabic ? "10 أحرف على الأقل، وتتضمن حرفًا ورقمًا." : "At least 10 characters, including a letter and a number."}</p>}
         <FieldError id="password-error">{state.fieldErrors?.password?.[0]}</FieldError>
@@ -73,7 +83,7 @@ export function AuthForm({ locale, mode, defaultRole = "professional", next }: P
             <input id="acceptedTerms" name="acceptedTerms" type="checkbox" className="mt-1 size-4 accent-brand-700" aria-invalid={Boolean(state.fieldErrors?.acceptedTerms)} aria-describedby={state.fieldErrors?.acceptedTerms ? "terms-error" : undefined} required />
             <span>
               {isArabic ? "أوافق على شروط الاستخدام وسياسة الخصوصية." : "I agree to the Terms of Use and Privacy Policy."}{" "}
-              <Link href={localePath(locale, "/privacy")} className="font-bold text-brand-700 underline underline-offset-4">{isArabic ? "اقرأ السياسة" : "Read the policy"}</Link>
+              <Link href={localePath(locale, "/terms")} className="font-bold text-brand-700 underline underline-offset-4">{isArabic ? "الشروط" : "Terms"}</Link>{" · "}<Link href={localePath(locale, "/privacy")} className="font-bold text-brand-700 underline underline-offset-4">{isArabic ? "الخصوصية" : "Privacy"}</Link>
             </span>
           </label>
           <FieldError id="terms-error">{state.fieldErrors?.acceptedTerms?.[0]}</FieldError>

@@ -60,12 +60,14 @@ export async function completeOnboarding(_previous: OnboardingState, formData: F
           license_number_input: parsed.data.licenseNumber,
           years_experience_input: parsed.data.yearsExperience,
         })
-      : await supabase.rpc("complete_organization_onboarding", {
+      : parsed.data.role === "organization_member"
+        ? await supabase.rpc("complete_organization_member_onboarding", common)
+        : await supabase.rpc("complete_organization_onboarding", {
           ...common,
           organization_name_input: parsed.data.organizationName,
           organization_type_input: parsed.data.organizationType,
           license_number_input: parsed.data.licenseNumber,
-        });
+          });
 
     if (result.error) {
       return {
