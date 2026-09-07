@@ -74,7 +74,16 @@ export function AuthForm({ locale, mode, defaultRole = "professional", next }: P
         </div>
         {mode === "register" && <p id="password-help" className="mt-2 text-xs text-slate-500">{isArabic ? "10 أحرف على الأقل، وتتضمن حرفًا ورقمًا." : "At least 10 characters, including a letter and a number."}</p>}
         <FieldError id="password-error">{state.fieldErrors?.password?.[0]}</FieldError>
-        {mode === "login" && <div className="mt-2 text-end"><Link className="text-xs font-black text-brand-700 hover:text-brand-900" href={localePath(locale, "/auth/forgot-password")}>{isArabic ? "نسيت كلمة المرور؟" : "Forgot your password?"}</Link></div>}
+        {mode === "login" && (
+          <div className="mt-1 text-end">
+            <a
+              className="inline-flex min-h-11 items-center text-xs font-black text-brand-700 hover:text-brand-900"
+              href={localePath(locale, "/auth/forgot-password")}
+            >
+              {isArabic ? "نسيت كلمة المرور؟" : "Forgot your password?"}
+            </a>
+          </div>
+        )}
       </div>
 
       {mode === "register" && (
