@@ -3,16 +3,14 @@ import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-bold transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-600/20 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-transparent px-5 text-sm font-bold transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[color:var(--ring)]/20 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        primary:
-          "bg-brand-700 text-white shadow-[0_10px_30px_-12px_rgba(16,79,120,.8)] hover:-translate-y-0.5 hover:bg-brand-800",
-        secondary:
-          "border border-brand-900/10 bg-white text-brand-950 shadow-sm hover:-translate-y-0.5 hover:border-brand-700/25 hover:bg-brand-50",
-        ghost: "text-brand-900 hover:bg-brand-50",
-        danger: "bg-red-700 text-white hover:bg-red-800",
+        primary: "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm hover:opacity-95",
+        secondary: "border app-border app-surface app-text hover:bg-[var(--surface-muted)]",
+        ghost: "app-text hover:bg-[var(--surface-muted)]",
+        danger: "bg-[var(--danger)] text-white hover:opacity-95",
       },
       size: {
         default: "min-h-11 px-5",

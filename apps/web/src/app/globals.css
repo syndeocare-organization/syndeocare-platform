@@ -22,7 +22,41 @@
 :root {
   color-scheme: light;
   --background: #fcfbf7;
+  --surface: #ffffff;
+  --surface-muted: #f5f7fa;
   --foreground: #082936;
+  --text-muted: #51606f;
+  --border: #d8e0e7;
+  --ring: #197a91;
+  --primary: #197a91;
+  --primary-foreground: #ffffff;
+  --secondary: #eef4f8;
+  --secondary-foreground: #082936;
+  --success: #0f8d5b;
+  --warning: #a76512;
+  --danger: #b42318;
+  --info: #0b69b4;
+  --shadow: 0 24px 70px -42px rgba(10, 55, 85, 0.45);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #081520;
+  --surface: #0f2231;
+  --surface-muted: #132b3c;
+  --foreground: #e8f0f7;
+  --text-muted: #b7c5d1;
+  --border: #22435d;
+  --ring: #43b3c6;
+  --primary: #43b3c6;
+  --primary-foreground: #06202d;
+  --secondary: #1b3447;
+  --secondary-foreground: #e8f0f7;
+  --success: #1ec982;
+  --warning: #f2b84b;
+  --danger: #ff7564;
+  --info: #73bcff;
+  --shadow: 0 30px 80px -42px rgba(0, 0, 0, 0.7);
 }
 
 * {
@@ -51,8 +85,8 @@ textarea {
 }
 
 ::selection {
-  background: #afe3eb;
-  color: #082936;
+  background: color-mix(in oklab, var(--primary) 26%, transparent);
+  color: var(--foreground);
 }
 
 .page-shell {
@@ -84,13 +118,49 @@ textarea {
 
 .soft-grid {
   background-image:
-    linear-gradient(rgba(21, 95, 116, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(21, 95, 116, 0.045) 1px, transparent 1px);
+    linear-gradient(color-mix(in oklab, var(--primary) 15%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--primary) 15%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
 .text-balance {
   text-wrap: balance;
+}
+
+.app-bg {
+  background: var(--background);
+}
+
+.app-surface {
+  background: var(--surface);
+}
+
+.app-surface-muted {
+  background: var(--surface-muted);
+}
+
+.app-text {
+  color: var(--foreground);
+}
+
+.app-text-muted {
+  color: var(--text-muted);
+}
+
+.app-border {
+  border-color: var(--border);
+}
+
+.app-shadow {
+  box-shadow: var(--shadow);
+}
+
+.safe-bottom-nav {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
+
+.bidi-isolate {
+  unicode-bidi: isolate;
 }
 
 @media (prefers-reduced-motion: reduce) {

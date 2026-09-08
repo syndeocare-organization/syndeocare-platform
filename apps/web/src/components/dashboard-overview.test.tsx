@@ -37,4 +37,21 @@ describe("DashboardOverview verification card", () => {
     expect(screen.getByRole("heading", { name: "Complete verification" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Verification complete" })).not.toBeInTheDocument();
   });
+
+  it("shows actionable next-step links for professionals with pending verification", () => {
+    render(<DashboardOverview locale="en" viewer={{ ...viewer, role: "professional", verificationStatus: "pending" }} summary={summary} />);
+
+    expect(screen.getByRole("heading", { name: "What to do next" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Complete verification/i })).toBeInTheDocument();
+    expect(screen.getByText("Filter by city/specialty and apply quickly.")).toBeInTheDocument();
+    expect(screen.getByText("Check accepted, rejected, and pending updates.")).toBeInTheDocument();
+  });
+
+  it("shows admin-specific next-step actions", () => {
+    render(<DashboardOverview locale="en" viewer={{ ...viewer, role: "admin" }} summary={summary} />);
+
+    expect(screen.getByRole("heading", { name: "Admin next steps" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Review accounts and documents/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "What to do next" })).not.toBeInTheDocument();
+  });
 });
