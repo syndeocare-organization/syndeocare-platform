@@ -18,5 +18,15 @@ export function initials(name?: string | null) {
 }
 
 export function safePath(path: string | null | undefined, fallback = "/ar/dashboard") {
-  return path?.startsWith("/") && !path.startsWith("//") ? path : fallback;
+  if (!path?.startsWith("/") || path.startsWith("//")) return fallback;
+
+  try {
+    decodeURI(path);
+    const base = new URL("https://syndeocare.invalid");
+    const target = new URL(path, base);
+    if (target.origin !== base.origin) return fallback;
+    return `${target.pathname}${target.search}${target.hash}`;
+  } catch {
+    return fallback;
+  }
 }

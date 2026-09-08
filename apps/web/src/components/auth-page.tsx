@@ -4,7 +4,7 @@ import { AuthForm } from "@/components/auth-form";
 import { BrandLogo } from "@/components/brand-logo";
 import { localePath, type Locale } from "@/lib/i18n";
 
-export function AuthPage({ locale, mode, role, next }: { locale: Locale; mode: "login" | "register"; role?: "professional" | "organization"; next?: string }) {
+export function AuthPage({ locale, mode, role, next, notice }: { locale: Locale; mode: "login" | "register"; role?: "professional" | "organization"; next?: string; notice?: { tone: "success" | "error"; message: string } }) {
   const isArabic = locale === "ar";
   const title = mode === "login" ? (isArabic ? "مرحبًا بعودتك" : "Welcome back") : (isArabic ? "ابدأ مع SyndeoCare" : "Start with SyndeoCare");
   const description = mode === "login" ? (isArabic ? "ادخل إلى لوحة التحكم وأكمل من حيث توقفت." : "Access your dashboard and continue where you left off.") : (isArabic ? "أنشئ حسابًا آمنًا، ثم أكمل ملفك بخطوات واضحة." : "Create a secure account, then complete your profile in clear steps.");
@@ -19,6 +19,7 @@ export function AuthPage({ locale, mode, role, next }: { locale: Locale; mode: "
             <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">{title}</h1>
             <p className="mt-4 leading-7 text-slate-600">{description}</p>
           </div>
+          {notice && <div role={notice.tone === "error" ? "alert" : "status"} className={`mt-7 rounded-xl p-4 text-sm leading-6 ${notice.tone === "error" ? "bg-red-50 text-red-800" : "bg-emerald-50 text-emerald-800"}`}>{notice.message}</div>}
           <AuthForm locale={locale} mode={mode} defaultRole={role} next={next} />
           <p className="mt-7 text-center text-sm text-slate-600">
             {mode === "login" ? (isArabic ? "ليس لديك حساب؟" : "New to SyndeoCare?") : (isArabic ? "لديك حساب بالفعل؟" : "Already have an account?")}{" "}

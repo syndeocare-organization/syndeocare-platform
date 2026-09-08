@@ -20,6 +20,11 @@ export async function GET(request: NextRequest) {
     .limit(limit);
 
   if (context.viewer.role === "professional") query = query.eq("status", "published").gte("starts_at", new Date().toISOString());
+  if (context.viewer.role === "organization") {
+    const { data: membership } = await context.supabase.from("organization_members").select("organization_id").eq("user_id", context.viewer.id).limit(1).maybeSingle();
+    if (!membership) return apiSuccess({ items: [], nextCursor: null });
+    query = query.eq("organization_id", membership.organization_id);
+  }
   if (city) query = query.ilike("city", city);
   if (specialty) query = query.ilike("specialty", specialty);
   if (cursor) query = query.gt("starts_at", cursor);
@@ -38,6 +43,9 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   const parsed = shiftCreateSchema.safeParse(body);
   if (!parsed.success) return validationError(parsed.error);
+  if (parsed.data.publish && new Date(parsed.data.startsAt) <= new Date()) {
+    return apiError("VALIDATION_ERROR", "A published shift must start in the future.", 422);
+  }
 
   const { data: membership, error: membershipError } = await context.supabase.from("organization_members").select("organization_id, role").eq("user_id", context.viewer.id).in("role", ["owner", "manager", "recruiter"]).limit(1).maybeSingle();
   if (membershipError) console.error("Managed organization lookup failed", { code: membershipError.code, message: membershipError.message });

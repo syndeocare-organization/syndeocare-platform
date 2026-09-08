@@ -18,9 +18,9 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       <div className="page-shell flex min-h-20 items-center justify-between gap-5">
         <BrandLogo locale={locale} />
         <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-700 lg:flex" aria-label="Primary">
-          <a className="hover:text-brand-700" href="#professionals">{t.nav.professionals}</a>
-          <a className="hover:text-brand-700" href="#clinics">{t.nav.clinics}</a>
-          <a className="hover:text-brand-700" href="#safety">{t.nav.safety}</a>
+          <Link className="hover:text-brand-700" href={localePath(locale, "/#professionals")}>{t.nav.professionals}</Link>
+          <Link className="hover:text-brand-700" href={localePath(locale, "/#clinics")}>{t.nav.clinics}</Link>
+          <Link className="hover:text-brand-700" href={localePath(locale, "/#safety")}>{t.nav.safety}</Link>
           <Link className="hover:text-brand-700" href={localePath(locale, "/support")}>{t.nav.support}</Link>
         </nav>
         <div className="flex items-center gap-1.5 sm:gap-2">

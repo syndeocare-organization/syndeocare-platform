@@ -5,16 +5,18 @@ import { z } from "zod";
 
 const adminSchema = z.object({
   url: z.url(),
-  serviceRoleKey: z.string().min(20),
+  secretKey: z.string().min(20),
 });
 
 export function createAdminClient() {
-  const { url, serviceRoleKey } = adminSchema.parse({
+  const { url, secretKey } = adminSchema.parse({
     url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    secretKey:
+      process.env.SUPABASE_SECRET_KEY ??
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
 
-  return createClient(url, serviceRoleKey, {
+  return createClient(url, secretKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }

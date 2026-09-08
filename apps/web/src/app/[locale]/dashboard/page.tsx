@@ -4,6 +4,7 @@ import { DashboardOverview } from "@/components/dashboard-overview";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { getViewer } from "@/lib/auth/dal";
 import { getDashboardSummary } from "@/lib/data/dashboard";
+import { getUnreadNotificationCount } from "@/lib/data/notifications";
 import { isLocale, localePath } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,10 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   const viewer = await getViewer();
   if (!viewer) redirect(localePath(locale, `/auth/login?next=/${locale}/dashboard`));
   if (!viewer.onboardingComplete) redirect(localePath(locale, "/onboarding"));
-  const summary = await getDashboardSummary(viewer);
+  const [summary, unreadCount] = await Promise.all([
+    getDashboardSummary(viewer),
+    getUnreadNotificationCount(viewer.id),
+  ]);
 
-  return <DashboardShell locale={locale} viewer={viewer}><DashboardOverview locale={locale} viewer={viewer} summary={summary} /></DashboardShell>;
+  return <DashboardShell locale={locale} viewer={viewer} activePage="dashboard" unreadCount={unreadCount}><DashboardOverview locale={locale} viewer={viewer} summary={summary} /></DashboardShell>;
 }

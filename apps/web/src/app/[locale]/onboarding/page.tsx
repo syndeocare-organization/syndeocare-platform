@@ -6,6 +6,7 @@ import { OnboardingForm } from "@/components/onboarding-form";
 import { Card } from "@/components/ui/card";
 import { getViewer } from "@/lib/auth/dal";
 import { isLocale, localePath } from "@/lib/i18n";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Complete your profile", robots: { index: false, follow: false } };
@@ -16,6 +17,11 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
   const viewer = await getViewer();
   if (!viewer) redirect(localePath(locale, `/auth/login?next=/${locale}/onboarding`));
   if (viewer.onboardingComplete) redirect(localePath(locale, "/dashboard"));
+  const supabase = await createClient();
+  const { data: teamMembership } = viewer.role === "organization"
+    ? await supabase.from("organization_members").select("organization_id").eq("user_id", viewer.id).limit(1).maybeSingle()
+    : { data: null };
+  const teamMember = Boolean(teamMembership);
   const isArabic = locale === "ar";
 
   return (
@@ -30,7 +36,7 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
             <p className="mt-3 leading-7 text-slate-600">{isArabic ? "نحتاج هذه المعلومات لمطابقة حسابك والتحقق منه بطريقة صحيحة." : "We use this information to match and verify your account correctly."}</p>
           </div>
         </div>
-        <Card className="p-6 sm:p-9"><OnboardingForm locale={locale} viewer={viewer} /></Card>
+        <Card className="p-6 sm:p-9"><OnboardingForm locale={locale} viewer={viewer} teamMember={teamMember} /></Card>
       </div>
     </main>
   );

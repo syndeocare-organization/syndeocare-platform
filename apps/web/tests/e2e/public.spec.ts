@@ -33,6 +33,39 @@ test("health endpoint stays explicit when cloud services are absent", async ({ r
   expect(health.services.web).toBe("up");
 });
 
+test("account recovery is reachable from sign in", async ({ page, isMobile }) => {
+  await page.goto("/ar/auth/login");
+  const recoveryLink = page.getByRole("link", { name: "نسيت كلمة المرور؟" });
+  await expect(recoveryLink).toHaveAttribute("href", "/ar/auth/forgot-password");
+  if (isMobile) await recoveryLink.tap();
+  else await recoveryLink.click();
+  await expect(page).toHaveURL(/\/ar\/auth\/forgot-password$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("استعد الوصول إلى حسابك");
+  await expect(page.getByRole("button", { name: "إرسال رابط الاستعادة" })).toBeVisible();
+});
+
+test("registration makes role, password, and legal choices explicit", async ({ page }) => {
+  await page.goto("/ar/auth/register");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("ابدأ مع SyndeoCare");
+  await expect(page.getByRole("radio", { name: "مقدم رعاية" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "منشأة صحية" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "إظهار كلمة المرور" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "الشروط" })).toHaveAttribute("href", "/ar/terms");
+});
+
+test("email verification guidance has a safe fallback", async ({ page }) => {
+  await page.goto("/en/auth/check-email");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Check your email");
+  await expect(page.getByRole("link", { name: "Change email" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to sign in" })).toBeVisible();
+});
+
+test("terms page is linked and readable", async ({ page }) => {
+  await page.goto("/en/terms");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Terms of use");
+  await expect(page.getByRole("heading", { level: 2, name: "Safe conduct" })).toBeVisible();
+});
+
 test("mobile layout does not overflow horizontally", async ({ page, isMobile }) => {
   test.skip(!isMobile, "Mobile project only");
   await page.goto("/ar");

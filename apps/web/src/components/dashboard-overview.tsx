@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import type { Viewer } from "@/lib/auth/dal";
 import type { DashboardSummary } from "@/lib/data/dashboard";
 import { localePath, type Locale } from "@/lib/i18n";
+import { shiftStatusLabel } from "@/lib/status-labels";
 import { cn } from "@/lib/utils";
 
 export function DashboardOverview({ locale, viewer, summary }: { locale: Locale; viewer: Viewer; summary: DashboardSummary }) {
@@ -58,7 +59,7 @@ export function DashboardOverview({ locale, viewer, summary }: { locale: Locale;
               {summary.recentShifts.map((shift) => (
                 <div key={shift.id} className="flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
                   <div><p className="font-black text-slate-900">{shift.title}</p><p className="mt-2 flex flex-wrap gap-4 text-xs text-slate-500"><span className="inline-flex items-center gap-1.5"><MapPin className="size-3.5" />{shift.city}</span><span className="inline-flex items-center gap-1.5"><Clock3 className="size-3.5" />{new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(shift.startsAt))}</span></p></div>
-                  <span className="w-fit rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">{shift.status}</span>
+                  <span className="w-fit rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">{shiftStatusLabel(shift.status, locale)}</span>
                 </div>
               ))}
             </div>
@@ -78,7 +79,7 @@ export function DashboardOverview({ locale, viewer, summary }: { locale: Locale;
             <span className="grid size-11 place-items-center rounded-2xl bg-white/10 text-brand-200"><FileCheck2 className="size-5" /></span>
             <h2 className="mt-8 text-xl font-black">{isArabic ? "أكمل التحقق" : "Complete verification"}</h2>
             <p className="mt-3 text-sm leading-7 text-brand-100/65">{isArabic ? "ارفع المستندات المطلوبة لتسريع المراجعة وإظهار شارة موثّق." : "Upload the required documents to speed up review and earn a verified badge."}</p>
-            <button type="button" disabled className="mt-7 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 text-sm font-bold text-white/70">{isArabic ? "رفع المستندات — قريبًا" : "Upload documents — soon"}</button>
+            <Link href={localePath(locale, "/verification")} className="mt-7 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 text-sm font-bold text-white transition hover:bg-white/15">{isArabic ? "رفع المستندات" : "Upload documents"}</Link>
           </Card>
         )}
       </section>

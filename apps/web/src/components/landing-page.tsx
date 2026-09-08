@@ -108,7 +108,7 @@ export function LandingPage({ locale }: { locale: Locale }) {
             <ol className="mt-14 grid gap-6 md:grid-cols-3">
               {t.steps.items.map(([number, title, description]) => (
                 <li key={number} className="relative rounded-3xl border border-brand-950/7 bg-white p-7 shadow-sm">
-                  <span className="text-4xl font-black tracking-tighter text-brand-200">{number}</span>
+                  <span className="text-4xl font-black tracking-tighter text-brand-600">{number}</span>
                   <h3 className="mt-8 text-xl font-black">{title}</h3>
                   <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
                 </li>
