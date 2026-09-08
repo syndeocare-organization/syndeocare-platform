@@ -4,7 +4,7 @@ import { AlertCircle, CheckCircle2, LoaderCircle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Select } from "@/components/ui/field";
+import { FieldHint, Input, Label, Select } from "@/components/ui/field";
 import type { Locale } from "@/lib/i18n";
 
 export function CreateShiftForm({ locale, canPublish }: { locale: Locale; canPublish: boolean }) {
@@ -86,14 +86,14 @@ export function CreateShiftForm({ locale, canPublish }: { locale: Locale; canPub
         <div><Label htmlFor="neededCount">{isArabic ? "العدد المطلوب" : "People needed"}</Label><Input id="neededCount" name="neededCount" type="number" min="1" max="100" defaultValue="1" required /></div>
         <div><Label htmlFor="hourlyRate">{isArabic ? "الأجر بالساعة" : "Hourly rate"}</Label><Input id="hourlyRate" name="hourlyRate" type="number" min="1" step="0.01" /></div>
         <div><Label htmlFor="currency">{isArabic ? "العملة" : "Currency"}</Label><Select id="currency" name="currency" defaultValue="YER"><option value="YER">YER — {isArabic ? "ريال يمني" : "Yemeni rial"}</option><option value="SAR">SAR — {isArabic ? "ريال سعودي" : "Saudi riyal"}</option><option value="AED">AED — {isArabic ? "درهم إماراتي" : "UAE dirham"}</option><option value="BHD">BHD — {isArabic ? "دينار بحريني" : "Bahraini dinar"}</option><option value="KWD">KWD — {isArabic ? "دينار كويتي" : "Kuwaiti dinar"}</option><option value="OMR">OMR — {isArabic ? "ريال عُماني" : "Omani rial"}</option><option value="QAR">QAR — {isArabic ? "ريال قطري" : "Qatari riyal"}</option></Select></div>
-        <div className="sm:col-span-2"><Label htmlFor="requirements">{isArabic ? "المتطلبات — سطر لكل متطلب" : "Requirements — one per line"}</Label><textarea id="requirements" name="requirements" rows={4} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-brand-600 focus:ring-4 focus:ring-brand-600/10" /></div>
+        <div className="sm:col-span-2"><Label htmlFor="requirements">{isArabic ? "المتطلبات — سطر لكل متطلب" : "Requirements — one per line"}</Label><textarea id="requirements" name="requirements" rows={4} className="app-surface app-text app-border w-full rounded-xl border px-4 py-3 outline-none focus:border-[var(--ring)] focus:ring-4 focus:ring-[color:var(--ring)]/10" /><FieldHint>{isArabic ? "اختياري: أضف المتطلبات الأساسية فقط لتسهيل التقديم." : "Optional: include only essential requirements for clearer applications."}</FieldHint></div>
       </div>
       <div>
         <label className={`flex items-center gap-3 text-sm font-bold ${canPublish ? "text-slate-700" : "text-slate-400"}`}>
           <input type="checkbox" name="publish" disabled={!canPublish} className="size-4 accent-brand-700" />
           {isArabic ? "نشر المناوبة مباشرة" : "Publish immediately"}
         </label>
-        {!canPublish && <p className="mt-2 text-xs text-slate-500">{isArabic ? "يمكنك حفظ مسودة الآن، وسيُتاح النشر بعد اعتماد المنشأة." : "Save a draft now; publishing unlocks after the organization is approved."}</p>}
+        {!canPublish && <FieldHint>{isArabic ? "يمكنك حفظ مسودة الآن، وسيُتاح النشر بعد اعتماد المنشأة." : "Save a draft now; publishing unlocks after the organization is approved."}</FieldHint>}
       </div>
       {result && <div role={result.ok ? "status" : "alert"} className={`flex items-center gap-3 rounded-xl p-4 text-sm ${result.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"}`}>{result.ok ? <CheckCircle2 className="size-4" /> : <AlertCircle className="size-4" />}{result.message}</div>}
       <Button type="submit" disabled={pending} className="w-full sm:w-auto sm:justify-self-end">{pending ? <LoaderCircle className="size-5 animate-spin" /> : <Plus className="size-5" />}{pending ? (isArabic ? "جارٍ الإنشاء..." : "Creating...") : (isArabic ? "إنشاء المناوبة" : "Create shift")}</Button>

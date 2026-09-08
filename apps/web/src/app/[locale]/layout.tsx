@@ -46,20 +46,37 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
 }
 
 export const viewport: Viewport = {
-  themeColor: "#fcfbf7",
-  colorScheme: "light",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fcfbf7" },
+    { media: "(prefers-color-scheme: dark)", color: "#081520" },
+  ],
+  colorScheme: "light dark",
 };
+
+const appearanceScript = `
+(() => {
+  try {
+    const key = 'syndeocare:appearance';
+    const value = localStorage.getItem(key);
+    const selected = value === 'light' || value === 'dark' || value === 'system' ? value : 'system';
+    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const resolved = selected === 'system' ? (dark ? 'dark' : 'light') : selected;
+    document.documentElement.dataset.theme = resolved;
+  } catch {}
+})();
+`;
 
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
   return (
-    <html lang={locale} dir={direction(locale)}>
-      <body className="min-h-screen bg-cream-50 text-brand-950 antialiased">
+    <html lang={locale} dir={direction(locale)} suppressHydrationWarning>
+      <body className="app-bg app-text min-h-screen antialiased">
+        <script dangerouslySetInnerHTML={{ __html: appearanceScript }} />
         <a
           href="#main-content"
-          className="fixed start-4 top-3 z-50 -translate-y-24 rounded-full bg-brand-950 px-5 py-3 text-sm font-bold text-white focus:translate-y-0"
+          className="fixed start-4 top-3 z-50 -translate-y-24 rounded-full bg-[var(--foreground)] px-5 py-3 text-sm font-bold text-[var(--background)] focus:translate-y-0"
         >
           {locale === "ar" ? "انتقل إلى المحتوى" : "Skip to content"}
         </a>

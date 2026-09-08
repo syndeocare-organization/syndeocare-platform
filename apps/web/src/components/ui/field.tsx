@@ -2,14 +2,14 @@ import type { HTMLAttributes, InputHTMLAttributes, LabelHTMLAttributes, SelectHT
 import { cn } from "@/lib/utils";
 
 export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label className={cn("mb-2 block text-sm font-bold text-slate-800", className)} {...props} />;
+  return <label className={cn("mb-2 block text-sm font-bold app-text", className)} {...props} />;
 }
 
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       className={cn(
-        "min-h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-brand-600 focus:ring-4 focus:ring-brand-600/10",
+        "app-surface app-text app-border min-h-12 w-full rounded-xl border px-4 text-base outline-none transition placeholder:text-[color:var(--text-muted)] focus:border-[var(--ring)] focus:ring-4 focus:ring-[color:var(--ring)]/10",
         className,
       )}
       {...props}
@@ -21,7 +21,7 @@ export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectE
   return (
     <select
       className={cn(
-        "min-h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base text-slate-950 outline-none transition focus:border-brand-600 focus:ring-4 focus:ring-brand-600/10",
+        "app-surface app-text app-border min-h-12 w-full rounded-xl border px-4 text-base outline-none transition focus:border-[var(--ring)] focus:ring-4 focus:ring-[color:var(--ring)]/10",
         className,
       )}
       {...props}
@@ -29,11 +29,15 @@ export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectE
   );
 }
 
+export function FieldHint({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {
+  return <p className={cn("mt-2 text-xs app-text-muted", className)} {...props} />;
+}
+
 export function FieldError({ className, children, ...props }: HTMLAttributes<HTMLParagraphElement>) {
   if (!children) return null;
 
   return (
-    <p className={cn("mt-2 text-xs font-semibold text-red-700", className)} {...props}>
+    <p className={cn("mt-2 text-xs font-semibold text-[var(--danger)]", className)} {...props}>
       {children}
     </p>
   );

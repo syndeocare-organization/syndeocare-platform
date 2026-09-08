@@ -4,7 +4,7 @@ import { AlertCircle, CheckCircle2, LoaderCircle, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Select } from "@/components/ui/field";
+import { FieldHint, Input, Label, Select } from "@/components/ui/field";
 import type { ProfileDetails } from "@/lib/data/profile";
 import type { Locale } from "@/lib/i18n";
 
@@ -67,7 +67,7 @@ export function ProfileForm({ locale, profile }: { locale: Locale; profile: Prof
       <fieldset className="grid gap-5 sm:grid-cols-2" disabled={pending}>
         <legend className="mb-5 text-lg font-black">{isArabic ? "معلومات الحساب" : "Account details"}</legend>
         <div className="sm:col-span-2"><Label htmlFor="fullName">{isArabic ? "الاسم الكامل" : "Full name"}</Label><Input id="fullName" name="fullName" defaultValue={profile.fullName} autoComplete="name" required /></div>
-        <div><Label htmlFor="email">{isArabic ? "البريد الإلكتروني" : "Email"}</Label><Input id="email" value={profile.email} readOnly dir="ltr" className="bg-slate-50 text-slate-500" /></div>
+        <div><Label htmlFor="email">{isArabic ? "البريد الإلكتروني" : "Email"}</Label><Input id="email" value={profile.email} readOnly dir="ltr" className="app-surface-muted app-text-muted" /></div>
         <div><Label htmlFor="phone">{isArabic ? "رقم الجوال" : "Mobile number"}</Label><Input id="phone" name="phone" defaultValue={profile.phone} type="tel" dir="ltr" autoComplete="tel" required /></div>
         <div><Label htmlFor="city">{isArabic ? "المدينة" : "City"}</Label><Input id="city" name="city" defaultValue={profile.city} autoComplete="address-level2" required /></div>
         <div><Label htmlFor="countryCode">{isArabic ? "الدولة" : "Country"}</Label><Select id="countryCode" name="countryCode" defaultValue={profile.countryCode}>{countries.map(([code, ar, en]) => <option key={code} value={code}>{isArabic ? ar : en}</option>)}</Select></div>
@@ -78,8 +78,8 @@ export function ProfileForm({ locale, profile }: { locale: Locale; profile: Prof
           <legend className="mb-5 text-lg font-black">{isArabic ? "الملف المهني" : "Professional profile"}</legend>
           <div><Label htmlFor="specialty">{isArabic ? "التخصص" : "Specialty"}</Label><Input id="specialty" name="specialty" defaultValue={profile.professional.specialty} required /></div>
           <div><Label htmlFor="yearsExperience">{isArabic ? "سنوات الخبرة" : "Years of experience"}</Label><Input id="yearsExperience" name="yearsExperience" type="number" min="0" max="70" defaultValue={profile.professional.yearsExperience} required /></div>
-          <div className="sm:col-span-2"><Label htmlFor="licenseNumber">{isArabic ? "رقم الترخيص" : "License number"}</Label><Input id="licenseNumber" value={profile.professional.licenseNumber} readOnly dir="ltr" className="bg-slate-50 text-slate-500" /><p className="mt-2 text-xs text-slate-500">{isArabic ? "لتغيير رقم الترخيص تواصل مع الدعم حفاظًا على حالة التحقق." : "Contact support to change a license number without compromising verification."}</p></div>
-          <div className="sm:col-span-2"><Label htmlFor="bio">{isArabic ? "نبذة مهنية" : "Professional bio"}</Label><textarea id="bio" name="bio" rows={5} maxLength={2000} defaultValue={profile.professional.bio} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-brand-600 focus:ring-4 focus:ring-brand-600/10" /></div>
+          <div className="sm:col-span-2"><Label htmlFor="licenseNumber">{isArabic ? "رقم الترخيص" : "License number"}</Label><Input id="licenseNumber" value={profile.professional.licenseNumber} readOnly dir="ltr" className="app-surface-muted app-text-muted" /><FieldHint>{isArabic ? "لتغيير رقم الترخيص تواصل مع الدعم حفاظًا على حالة التحقق." : "Contact support to change a license number without compromising verification."}</FieldHint></div>
+          <div className="sm:col-span-2"><Label htmlFor="bio">{isArabic ? "نبذة مهنية" : "Professional bio"}</Label><textarea id="bio" name="bio" rows={5} maxLength={2000} defaultValue={profile.professional.bio} className="app-surface app-text app-border w-full rounded-xl border px-4 py-3 outline-none focus:border-[var(--ring)] focus:ring-4 focus:ring-[color:var(--ring)]/10" /></div>
           <label className="flex items-center gap-3 text-sm font-bold text-slate-700"><input type="checkbox" name="available" defaultChecked={profile.professional.available} className="size-4 accent-brand-700" />{isArabic ? "متاح لاستقبال فرص جديدة" : "Available for new opportunities"}</label>
         </fieldset>
       )}
@@ -89,7 +89,7 @@ export function ProfileForm({ locale, profile }: { locale: Locale; profile: Prof
           <legend className="mb-5 text-lg font-black">{isArabic ? "بيانات المنشأة" : "Organization details"}</legend>
           <div className="sm:col-span-2"><Label htmlFor="organizationName">{isArabic ? "اسم المنشأة" : "Organization name"}</Label><Input id="organizationName" name="organizationName" defaultValue={profile.organization.name} required /></div>
           <div><Label htmlFor="organizationType">{isArabic ? "نوع المنشأة" : "Organization type"}</Label><Select id="organizationType" name="organizationType" defaultValue={profile.organization.type}><option value="hospital">{isArabic ? "مستشفى" : "Hospital"}</option><option value="clinic">{isArabic ? "عيادة / مجمع" : "Clinic"}</option><option value="home_care">{isArabic ? "رعاية منزلية" : "Home care"}</option><option value="other">{isArabic ? "أخرى" : "Other"}</option></Select></div>
-          <div><Label htmlFor="organizationLicense">{isArabic ? "رقم الترخيص" : "License number"}</Label><Input id="organizationLicense" value={profile.organization.licenseNumber} readOnly dir="ltr" className="bg-slate-50 text-slate-500" /></div>
+          <div><Label htmlFor="organizationLicense">{isArabic ? "رقم الترخيص" : "License number"}</Label><Input id="organizationLicense" value={profile.organization.licenseNumber} readOnly dir="ltr" className="app-surface-muted app-text-muted" /></div>
         </fieldset>
       )}
 

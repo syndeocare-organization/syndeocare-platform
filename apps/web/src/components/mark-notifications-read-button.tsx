@@ -32,7 +32,7 @@ export function MarkNotificationsReadButton({ locale, disabled }: { locale: Loca
         {pending ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <CheckCheck className="size-4" aria-hidden="true" />}
         {pending ? (isArabic ? "جارٍ التحديث" : "Updating") : (isArabic ? "تحديد الكل كمقروء" : "Mark all as read")}
       </Button>
-      {failed && <p role="alert" className="mt-2 text-xs text-red-700">{isArabic ? "تعذر تحديث الإشعارات." : "Notifications could not be updated."}</p>}
+      {failed && <p role="alert" className="mt-2 text-xs text-[var(--danger)]">{isArabic ? "تعذر تحديث الإشعارات." : "Notifications could not be updated."}</p>}
     </div>
   );
 }
